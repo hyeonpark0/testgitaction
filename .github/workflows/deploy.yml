@@ -36,6 +36,16 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ap-northeast-2
         run: |
-          aws s3 sync ./build s3://mytestcicd --delete --debug
+          aws s3 sync ./build s3://mytestcicd --delete
           # ./build: React 앱 빌드 결과물 디렉토리
+      
+      - name: Notify Slack on Success
+        if: success()  # 성공 시 실행
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"✅ Build Succeeded for ${{ github.repository }} on branch ${{ github.ref }}.\"}" ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack on Failure
+        if: failure()  # 실패 시 실행
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"❌ Build Failed for ${{ github.repository }} on branch ${{ github.ref }}.\"}" ${{ secrets.SLACK_WEBHOOK_URL }}
 
